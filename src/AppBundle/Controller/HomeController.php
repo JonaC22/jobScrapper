@@ -18,19 +18,19 @@ class HomeController extends Controller
     }
 
     /**
-     * @Route("/jobs", name="jobs_list")
+     * @Route("/jobs/{slug}", name="jobs_list")
      */
-    public function listAction()
+    public function listAction($slug = 'all')
     {
-        return new Response($this->getJobs('all'));
+        return new Response($this->getJobs($slug));
     }
 
     /**
-     * @Route("/jobs/{slug}", name="jobs_show")
+     * @Route("/ofertas-de-trabajo/{slug}", name="job_show")
      */
     public function showAction($slug)
     {
-        return new Response($this->getJobs($slug));
+        return new Response($this->getJob($slug));
     }
 
     /**
@@ -64,13 +64,22 @@ class HomeController extends Controller
      */
     private function getJobs($slug):string
     {
-        $html = '';
+        $html = '<ul>';
         for ($page = 0; $page < 10; $page++) {
             $body = $this->getJobsPage($slug, $page);
             $crawler = new Crawler($body);
             $crawler = $crawler->filter('#p_ofertas');
             $html .= $crawler->html();
         }
+        $html .= '</ul>';
+        $html .= '<link type="text/css" rel="stylesheet" href="/css/publica.css">';
         return $html;
+    }
+
+    private function getJob($slug):string
+    {
+        $client = new \GuzzleHttp\Client(['base_uri' => 'http://www.computrabajo.com.ar/ofertas-de-trabajo/']);
+        $response = $client->request('GET', $slug);
+        return $response->getBody()->getContents();
     }
 }
