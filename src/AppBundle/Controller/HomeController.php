@@ -37,7 +37,7 @@ class HomeController extends Controller
      * @param $slug
      * @return string
      */
-    private function getJobsPage($slug)
+    private function getJobsPage($slug, $page)
     {
         switch($slug){
             case 'remote':
@@ -49,8 +49,12 @@ class HomeController extends Controller
                 break;
         }
 
+        if (!is_numeric($page) || $page < 1 || $page > 10) {
+            $page = '';
+        }
+
         $client = new \GuzzleHttp\Client(['base_uri' => 'http://www.computrabajo.com.ar/']);
-        $response = $client->request('GET', $endpoint);
+        $response = $client->request('GET', $endpoint . '?p=' . $page);
         return $response->getBody()->getContents();
     }
 
@@ -60,9 +64,13 @@ class HomeController extends Controller
      */
     private function getJobs($slug):string
     {
-        $body = $this->getJobsPage($slug);
-        $crawler = new Crawler($body);
-        $crawler = $crawler->filter('#p_ofertas');
-        return $crawler->html();
+        $html = '';
+        for ($page = 0; $page < 10; $page++) {
+            $body = $this->getJobsPage($slug, $page);
+            $crawler = new Crawler($body);
+            $crawler = $crawler->filter('#p_ofertas');
+            $html .= $crawler->html();
+        }
+        return $html;
     }
 }
