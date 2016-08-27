@@ -64,15 +64,14 @@ class HomeController extends Controller
      */
     private function getJobs($slug):string
     {
-        $html = '<ul>';
+        $html = '<head><link type="text/css" rel="stylesheet" href="/css/publica.css"></head><body><ul>';
         for ($page = 0; $page < 10; $page++) {
             $body = $this->getJobsPage($slug, $page);
             $crawler = new Crawler($body);
             $crawler = $crawler->filter('#p_ofertas');
             $html .= $crawler->html();
         }
-        $html .= '</ul>';
-        $html .= '<link type="text/css" rel="stylesheet" href="/css/publica.css">';
+        $html .= '</ul></body>';
         return $html;
     }
 
