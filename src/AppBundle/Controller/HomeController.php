@@ -4,6 +4,7 @@ namespace AppBundle\Controller;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\HttpFoundation\Response;
 
 class HomeController extends Controller
@@ -21,8 +22,7 @@ class HomeController extends Controller
      */
     public function listAction()
     {
-        $body = $this->getJobsPage('all');
-        return new Response($body);
+        return new Response($this->getJobs('all'));
     }
 
     /**
@@ -30,10 +30,13 @@ class HomeController extends Controller
      */
     public function showAction($slug)
     {
-        $body = $this->getJobsPage($slug);
-        return new Response($body);
+        return new Response($this->getJobs($slug));
     }
 
+    /**
+     * @param $slug
+     * @return string
+     */
     private function getJobsPage($slug)
     {
         switch($slug){
@@ -48,6 +51,18 @@ class HomeController extends Controller
 
         $client = new \GuzzleHttp\Client(['base_uri' => 'http://www.computrabajo.com.ar/']);
         $response = $client->request('GET', $endpoint);
-        return $response->getBody();
+        return $response->getBody()->getContents();
+    }
+
+    /**
+     * Gets jobs page and do scrapping for show only the job list
+     * @return string
+     */
+    private function getJobs($slug):string
+    {
+        $body = $this->getJobsPage($slug);
+        $crawler = new Crawler($body);
+        $crawler = $crawler->filter('#p_ofertas');
+        return $crawler->html();
     }
 }
